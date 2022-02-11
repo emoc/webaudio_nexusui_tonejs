@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<!--
+    Exemple de base avec Tone.js
+
+    NexusUI 2.1.6         http://nexus-js.github.io/ui/
+    Tone.js 14.7.39       https://github.com/Tonejs/Tone.js
+    Blueprint CSS 3.1.3   https://blueprintcss.dev/docs/grid
+
+    10 février 2022 / pierre@lesporteslogiques.net / Debian 9.5 @ kirin
+
+    https://github.com/emoc/webaudio_nexusui_tonejs
+-->
+
+<head>
+    <meta charset="utf-8">
+    <title>osc + ADSR</title>
+    <script src="./Tone.js"></script>
+</head>
+
+<body>
+
+    <input type="range" oninput="setFreq(this.value);" min="50" max="5000" value="378" step="10">
+    <output id="frequence">378</output>
+
+    <button onclick="trigger();">TRIG</button>
+
+    <script>
+        // types d'oscillateurs : sine, square, sawtooth, triangle
+        // il est possible d'indiquer le nombre de partiels : 2, 4, 8, etc
+        const osc = new Tone.Oscillator(378, "sawtooth16");
+        const ampenv = new Tone.AmplitudeEnvelope(0.01, 0.0, 1.0, 0.1);
+        osc.connect(ampenv);
+        ampenv.toDestination();
+        osc.start();
+
+        function trigger() {
+            Tone.start();
+            ampenv.triggerAttackRelease(0.3);
+        }
+
+        function setFreq(val) {
+            document.getElementById('frequence').innerHTML = val;
+            osc.frequency.value = val;
+        }
+    </script>
+
+</body>
+
+</html>

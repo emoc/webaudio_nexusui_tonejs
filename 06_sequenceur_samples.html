@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+<!--
+    Séquenceur avec samples, BPM et chargement de séquences
+
+    NexusUI 2.1.6         http://nexus-js.github.io/ui/
+    Tone.js 14.7.39       https://github.com/Tonejs/Tone.js
+    Blueprint CSS 3.1.3   https://blueprintcss.dev/docs/grid
+
+    10 février 2022 / pierre@lesporteslogiques.net / Debian 9.5 @ kirin
+
+    https://github.com/emoc/webaudio_nexusui_tonejs
+-->
+
+<head>
+    <meta charset="utf-8">
+    <title>sequenceur samples</title>
+    <script src="./Tone.js"></script>
+    <script src="./NexusUI.js"></script>
+</head>
+
+<body style="margin: 50px;">
+
+    <div id="seq"></div>
+    <br>
+    ON/OFF<br>
+    <div id="tog"></div>
+    BPM<br>
+    <div id="bpm"></div>
+
+    <script>
+
+        // Interface graphique avec NexusUI.js *********************************
+        var sequencer = new Nexus.Sequencer('#seq',{
+            'size': [960,120],
+            'mode': 'toggle',
+            'rows': 4,
+            'columns': 32,
+            'paddingRow': 2,
+            'paddingColumn': 2
+        });
+
+        sequencer.matrix.set.all([
+            [1,0,1,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,1,1],
+            [1,0,0,0,0,0,0,1,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1,1,0,1,0,0,0,0,0]
+        ]);
+
+        sequencer.on('step',function(v) {
+            console.log(v); // Renvoie Array(4) [ 0, 0, 0, 0 ] En commençant par le bas
+            if (v[3] === 1) piste4.start();
+            if (v[2] === 1) piste3.start();
+            if (v[1] === 1) piste2.start();
+            if (v[0] === 1) piste1.start();
+        });
+
+        var toggle = new Nexus.Toggle('#tog',{
+            'size': [40,20],
+            'state': false
+        });
+
+        toggle.on('change',function(v) {
+            Tone.start();
+            //console.log("état du toggle modifié en " + v);
+            if (v === true) {
+                sequencer.start(15000 / next_bpm);  // Durée du pas, en ms
+            } else {
+                sequencer.stop();
+            }
+        });
+
+        var next_bpm = 90;
+
+        var bpm = new Nexus.Number('#bpm',{
+            'size': [60,30],
+            'value': next_bpm,
+            'min': 60,
+            'max': 200,
+            'step': 1
+        });
+
+        bpm.on('change',function(v) {
+            next_bpm = v;
+            //console.log("BPM " + next_bpm + " millis " + (15000 / v) );
+        });
+
+        bpm.on('release',function() {
+            //console.log('BPM relâché');
+            if (toggle.state === true) {
+                sequencer.stop();
+                sequencer.start(15000 / next_bpm);
+            }
+        });
+        // Synthèse sonore avec Tone.js ****************************************
+
+        const piste4 = new Tone.Player("./audio/hihat.mp3").toDestination();
+        const piste3 = new Tone.Player("./audio/tom3.mp3").toDestination();
+        const piste2 = new Tone.Player("./audio/snare.mp3").toDestination();
+        const piste1 = new Tone.Player("./audio/kick.mp3").toDestination();
+
+    </script>
+
+</body>
+
+</html>

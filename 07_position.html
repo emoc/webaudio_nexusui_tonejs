@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<!--
+    Pad XY pour contrôler les paramètres d'un filtre (fréquence et Q)
+
+    NexusUI 2.1.6         http://nexus-js.github.io/ui/
+    Tone.js 14.7.39       https://github.com/Tonejs/Tone.js
+    Blueprint CSS 3.1.3   https://blueprintcss.dev/docs/grid
+
+    10 février 2022 / pierre@lesporteslogiques.net / Debian 9.5 @ kirin
+
+    https://github.com/emoc/webaudio_nexusui_tonejs
+-->
+
+<head>
+    <meta charset="utf-8">
+    <title>noise slider 2D</title>
+    <script src="./Tone.js"></script>
+    <script src="./NexusUI.js"></script>
+    <style>
+        body { margin: 50px; }
+    </style>
+</head>
+
+<body>
+
+    <button onclick="startAudio();">START</button>
+    <button onclick="stopAudio();">STOP</button>
+    <br><br>
+
+    <div id="pos"></div>
+
+    <script>
+
+    // Interface graphique avec NexusUI.js *************************************
+
+    var position = new Nexus.Position('#pos',{ // x=0, y=0 en bas à gauche
+        'size': [800,400],
+        'x': 0.05,
+        'y': 0.2,
+    });
+
+    position.on('change',function(v) {    // Le slider 2D modifie le filtre
+        //console.log("v.x " + v.x + " v.y " + v.y);
+        var freq = (v.x * 6000) + 50;     // freq entre 50 et 6050 Hz
+        var newq = (v.y * 40) + 1;        // Q entre 1 et 21
+        filter.frequency.rampTo(freq, 0.2);
+        filter.Q.rampTo(newq, 1);
+    });
+
+    // Synthèse sonore avec Tone.js ********************************************
+
+    const pingpong = new Tone.PingPongDelay(2, 0.6).toDestination();
+    const filter = new Tone.Filter(350, "bandpass").connect(pingpong);
+    filter.Q.value = 9;
+    const noise = new Tone.Noise("pink").connect(filter);
+
+
+    // Interaction *************************************************************
+
+    function startAudio() {
+        Tone.start();
+        noise.start();
+    }
+
+    function stopAudio() {
+        noise.stop();
+    }
+
+    </script>
+
+</body>
+
+</html>

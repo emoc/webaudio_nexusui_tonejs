@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<!--
+    Composition musicale avec des sons de synthèse et des structures proposées par Tone.js
+
+    NexusUI 2.1.6         http://nexus-js.github.io/ui/
+    Tone.js 14.7.39       https://github.com/Tonejs/Tone.js
+    Blueprint CSS 3.1.3   https://blueprintcss.dev/docs/grid
+
+    10 février 2022 / pierre@lesporteslogiques.net / Debian 9.5 @ kirin
+
+    https://github.com/emoc/webaudio_nexusui_tonejs
+-->
+
+<head>
+    <meta charset="utf-8">
+    <title>séquence</title>
+    <script src="./Tone.js"></script>
+</head>
+
+<body>
+    <button onclick="start();">START</button>
+    <button onclick="stop();">STOP</button>
+
+    <script>
+
+        // *************************** synth ******************************
+        const synth = new Tone.PolySynth(Tone.AMSynth, {
+            volume: -10,
+        }).toDestination();
+
+        const pattern = new Tone.Pattern(function(time, note){
+            synth.triggerAttackRelease(note, "16n");
+        }, ["C2", "D4", "E5", "A6"], "randomWalk").start(0);
+
+        pattern.loop = true;
+        pattern.interval = "8n";
+
+        // *************************** kick *******************************
+        const kick = new Tone.MembraneSynth({
+            octaves: 10,
+            pitchDecay: 0.01
+        }).toDestination();
+
+        const kickPart = new Tone.Loop(((time) => {
+            kick.triggerAttackRelease("C2", "8n", time);
+        }), "2n").start(0);
+
+        // *************************** bass *******************************
+        const bass = new Tone.MonoSynth({
+            volume: -10
+        }).toDestination();
+
+        const bassPart = new Tone.Sequence(((time, note) => {
+            bass.triggerAttackRelease(note, "16n", time);
+        }), ["C2", ["C3", ["C3", "D2"]], "E2", ["D2", "A1"]], "4n").start(0);
+
+        bassPart.probability = 0.9;
+
+        // ******************************************************************
+        function start() {
+            Tone.start();
+            Tone.Transport.bpm.value = 90;
+            Tone.Transport.start();
+        }
+        function stop() {
+            Tone.Transport.stop();
+        }
+    </script>
+
+</body>
+
+</html>

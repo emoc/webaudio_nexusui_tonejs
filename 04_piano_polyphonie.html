@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<!--
+    Un clavier type piano, polyphonique.
+    N'importe quel synthé monophonique peut-être utilisé pour définir les différentes voix ((AMSynth, DuoSynth, FMSynth, MembraneSynth, MetalSynth, MonoSynth, Synth)). 
+    Polyphonie maximum : 32 voix
+
+    NexusUI 2.1.6         http://nexus-js.github.io/ui/
+    Tone.js 14.7.39       https://github.com/Tonejs/Tone.js
+    Blueprint CSS 3.1.3   https://blueprintcss.dev/docs/grid
+
+    10 février 2022 / pierre@lesporteslogiques.net / Debian 9.5 @ kirin
+
+    https://github.com/emoc/webaudio_nexusui_tonejs
+-->
+
+<head>
+    <meta charset="utf-8">
+    <title>polyphonie</title>
+    <script src="./Tone.js"></script>
+    <script src="./NexusUI.js"></script>
+</head>
+
+<body style="margin:100px;">
+
+    <div id="pianotarget"></div>
+
+    <script>
+
+        // Interface graphique avec NexusUI.js *********************************
+        var piano = new Nexus.Piano('#pianotarget', {
+            'size': [800,125],
+            'mode': 'button',  // 'button', 'toggle', or 'impulse'
+            'lowNote': 24,
+            'highNote': 72
+        });
+
+        piano.on('change',function(v) {
+            console.log(v.note);
+            if (v.state === true) poly.triggerAttackRelease(Nexus.mtof(v.note), 0.4);
+        });
+
+        // Synthèse sonore avec Tone.js ****************************************
+        // https://tonejs.github.io/docs/14.7.77/PolySynth
+        const poly = new Tone.PolySynth(Tone.AMSynth).toDestination();
+
+    </script>
+
+</body>
+
+</html>

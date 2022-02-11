@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<!--
+    UI par clavier de piano, évènements d'attaque et relâche différenciés.
+
+    NexusUI 2.1.6         http://nexus-js.github.io/ui/
+    Tone.js 14.7.39       https://github.com/Tonejs/Tone.js
+    Blueprint CSS 3.1.3   https://blueprintcss.dev/docs/grid
+
+    10 février 2022 / pierre@lesporteslogiques.net / Debian 9.5 @ kirin
+
+    https://github.com/emoc/webaudio_nexusui_tonejs
+-->
+
+<head>
+    <meta charset="utf-8">
+    <title>piano + osc</title>
+    <script src="./Tone.js"></script>
+    <script src="./NexusUI.js"></script>
+</head>
+
+<body>
+
+    <div id="pianotarget"></div>
+
+    <script>
+
+        // Interface graphique avec NexusUI.js *********************************
+        var piano = new Nexus.Piano('#pianotarget', {
+            'size': [800,125],
+            'mode': 'button',  // 'button', 'toggle', or 'impulse'
+            'lowNote': 24,
+            'highNote': 72
+        })
+
+        piano.on('change',function(v) {
+            console.log(v.note);
+            if (v.state) {
+                fatOsc.frequency.value = Nexus.mtof(v.note);
+                Tone.start();
+                ampenv.triggerAttack();
+            } else {
+                ampenv.triggerRelease();
+            }
+        })
+
+        // Synthèse sonore avec Tone.js ****************************************
+        const fatOsc = new Tone.FatOscillator(378, "sawtooth", 40);
+        const ampenv = new Tone.AmplitudeEnvelope(0.3, 0.0, 0.7, 0.5);
+        fatOsc.connect(ampenv);
+        ampenv.toDestination();
+        fatOsc.start();
+
+    </script>
+
+</body>
+
+</html>

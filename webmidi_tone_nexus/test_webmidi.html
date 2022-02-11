@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<!--
+    Test pour utiliser l'entrée midi-in système et relier un clavier extérieur
+    adapté vitefaitmalfait depuis les exemples de la documentation de Tone.js
+    Toutes les dépendances JS sont incluses dans le répertoire JS.
+
+    /!\ Firefox ne supporte pas encore la Web MIDI API
+
+    Web-MIDI pour Firefox
+        * Pas suporté pour le moment! (fev. 2022) : https://caniuse.com/midi
+        * après avoir installé
+        * Installer : https://jazz-soft.net/download/Jazz-Plugin/
+        * puis : https://addons.mozilla.org/en-US/firefox/addon/jazz-midi/
+        * puis : https://addons.mozilla.org/fr/firefox/addon/web-midi-api/
+        * tester ici : https://jazz-soft.net/download/web-midi/web-midi-test.html
+-->
+
+<head>
+    <meta charset="utf-8">
+    <title>tone / webmidi / nexus</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <script src="./js/webcomponents-bundle.js"></script>
+    <script src="./js/Tone.js"></script>
+    <script src="./js/tone-ui.js"></script>
+    <script src="./js/components.js"></script>
+    <script src="./js/NexusUI.js"></script>
+</head>
+
+<body style="margin: 50px;">
+
+    <div id="content" style="width:600px;"></div>
+
+    <div style="margin-top: 50px;"></div>
+
+    <div id="dial"></div>
+
+    <div style="margin-top: 50px;"></div>
+
+    <section style="width:400px;">
+        <div style="float:right;">
+            <output id="synthtype" style="float-right;">fatsawtooth</output>
+        </div>
+        <div id="radio"></div>
+    </section>
+
+    <script type="text/javascript">
+        const synth = new Tone.AMSynth({
+            harmonicity: 2.5,
+            oscillator: {
+                type: "fatsawtooth"
+            },
+            envelope: {
+                attack: 0.1,
+                decay: 0.2,
+                sustain: 0.2,
+                release: 0.3
+            },
+            modulation: {
+                type: "square"
+            },
+            modulationEnvelope: {
+                attack: 0.5,
+                decay: 0.01
+            }
+        }).toDestination();
+
+        piano({
+            tone: synth,
+            parent: document.querySelector("#content"),
+            noteon: (note) => synth.triggerAttack(note.name),
+            noteoff: (note) => synth.triggerRelease()
+        });
+
+        var dial = new Nexus.Dial('#dial',{
+            'size': [75,75],
+            'interaction': 'horizontal', // "radial", "vertical", or "horizontal"
+            'mode': 'relative', // "absolute" or "relative"
+            'min': 0,
+            'max': 1,
+            'step': 0,
+            'value': 0
+        });
+
+        dial.on('change',function(v) {
+            console.log("dial : " + v);
+            synth.harmonicity.value = v * 6;
+        });
+
+        var radiobutton = new Nexus.RadioButton('#radio',{
+            'size': [150,25],
+            'numberOfButtons': 5,
+            'active': 4
+        });
+
+        radiobutton.on('change',function(v) {
+            console.log("radio : " + v);
+            if (v === 0) {
+                synth.oscillator.type = "sine";
+                document.getElementById('synthtype').innerHTML = "sine";
+            }
+            if (v === 1) {
+                synth.oscillator.type = "triangle";
+                document.getElementById('synthtype').innerHTML = "triangle";
+            }
+            if (v === 2) {
+                synth.oscillator.type = "square";
+                document.getElementById('synthtype').innerHTML = "square";
+            }
+            if (v === 3) {
+                synth.oscillator.type = "sawtooth";
+                document.getElementById('synthtype').innerHTML = "sawtooth";
+            }
+            if (v === 4) {
+                synth.oscillator.type = "fatsawtooth";
+                document.getElementById('synthtype').innerHTML = "fatsawtooth";
+            }
+        });
+
+	</script>
+</body>
+</html>

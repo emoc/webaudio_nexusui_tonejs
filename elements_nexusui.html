@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+
+<!--
+    Tous les éléments de NexusUI.js
+
+    NexusUI 2.1.6         http://nexus-js.github.io/ui/
+    Tone.js 14.7.39       https://github.com/Tonejs/Tone.js
+    Blueprint CSS 3.1.3   https://blueprintcss.dev/docs/grid
+
+    10 février 2022 / pierre@lesporteslogiques.net / Debian 9.5 @ kirin
+
+    https://github.com/emoc/webaudio_nexusui_tonejs
+-->
+
+<head>
+    <meta charset="utf-8">
+    <title>Éléments NexusUI</title>
+    <script src="./NexusUI.js"></script>
+    <link href="./blueprint.css" rel="stylesheet">
+    <style>
+
+        body {
+            margin: 30px;
+        }
+
+        .l {
+            background-color: #f5fd76;
+            color: #22bbbb;
+            padding: 3px;
+            font-variant: small-caps;
+            font-size: 1em;
+            font-family: arial, sans-serif;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div bp="grid">
+
+        <div bp="1"><span class="l">button</span><div id="button"></div></div>
+        <div bp="1"><span class="l">dial</span><div id="dial"></div></div>
+        <div bp="2"><span class="l">slider</span><div id="sliderh"></div></div>
+        <div bp="1"><span class="l">number</span><div id="number"></div></div>
+        <div bp="1"><span class="l">toggle</span><div id="toggle"></div></div>
+        <div bp="2"><span class="l">radiobutton</span><div id="radiobutton"></div></div>
+        <div bp="2"><span class="l">textbutton</span><div id="textbutton"></div></div>
+        <div bp="2"><span class="l">tilt</span><div id="tilt"></div></div>
+
+        <div bp="1"><span class="l">slider</span><div id="sliderv"></div></div>
+        <div bp="1"><span class="l">select</span><div id="select"></div></div>
+        <div bp="1"><span class="l">pan</span><div id="pan"></div></div>
+        <div bp="3"><span class="l">position</span><div id="position"></div></div>
+        <div bp="3"><span class="l">envelope</span><div id="envelope"></div></div>
+        <div bp="3"><span class="l">multislider</span><div id="multislider"></div></div>
+
+        <div bp="6"><span class="l">piano</span><div id="piano"></div></div>
+        <div bp="6"><span class="l">sequencer</span><div id="sequencer"></div></div>
+
+        <!--div bp="4"><div id="pan2d"></div></div --><!-- erreur JS pour cet élément -->
+        <div bp="2"><span class="l">meter</span><div id="meter"></div></div>
+        <div bp="5"><span class="l">oscilloscope</span><div id="oscilloscope"></div></div>
+        <div bp="5"><span class="l">spectrogram</span><div id="spectrogram"></div></div>
+
+
+
+
+    </div>
+
+    <script>
+
+        // ****** Affichage des propriétés d'un objet sur la console **********
+
+        JSON.safeStringify = (obj, indent = 2) => {
+          let cache = [];
+          const retVal = JSON.stringify(
+            obj,
+            (key, value) =>
+              typeof value === "object" && value !== null
+                ? cache.includes(value)
+                  ? undefined // Duplicate reference found, discard key
+                  : cache.push(value) && value // Store value in our collection
+                : value,
+            indent
+          );
+          cache = null;
+          return retVal;
+        };
+
+        // ******* Source de bruit ********************************************
+        // https://github.com/mdn/webaudio-examples/blob/master/step-sequencer/index.html
+
+        const audioCtx = window.AudioContext ? new AudioContext() : new webkitAudioContext();
+        const bufferSize = audioCtx.sampleRate * 2; // set the time of the note
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); // create an empty buffer
+        const data = buffer.getChannelData(0); // get data
+
+        // fill the buffer with noise
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+
+        // create a buffer source for our created data
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+
+        const bandpass = audioCtx.createBiquadFilter();
+        bandpass.type = 'bandpass';
+        bandpass.frequency.value = 1200;
+
+        // connect our graph
+        noise.connect(bandpass);
+        noise.loop = true;
+        noise.start();
+
+        // ********************************************************************
+
+        var button = new Nexus.Button('#button',{
+            'size': [80,80],
+            'mode': 'aftertouch',
+            'state': false
+        });
+
+        button.on('change',function(v) {
+            console.log("button : " + JSON.safeStringify(v));
+        });
+
+        // ********************************************************************
+
+        var dial = new Nexus.Dial('#dial',{
+            'size': [80, 80],
+            'interaction': 'radial', // "radial", "vertical", or "horizontal"
+            'mode': 'relative', // "absolute" or "relative"
+            'min': 0,
+            'max': 1,
+            'step': 0,
+            'value': 0
+        })
+
+        dial.on('change',function(v) {
+            console.log("dial : " + v);
+        })
+
+        // ********************************************************************
+
+        var number = new Nexus.Number('#number',{
+            'size': [60,30],
+            'value': 0,
+            'min': 0,
+            'max': 20000,
+            'step': 1
+        });
+
+        number.on('change',function(v) {
+            console.log("number : " + v);
+        });
+
+        // ********************************************************************
+
+        var sliderh = new Nexus.Slider('#sliderh',{
+            'size': [120,20],
+            'mode': 'relative',  // 'relative' or 'absolute'
+            'min': 0,
+            'max': 1,
+            'step': 0,
+            'value': 0
+        });
+
+        sliderh.on('change',function(v) {
+            console.log("sliderh : " + v);
+        });
+
+        // ********************************************************************
+
+        var toggle = new Nexus.Toggle('#toggle',{
+            'size': [40,20],
+            'state': false
+        });
+
+        toggle.on('change',function(v) {
+            console.log("toggle : " + v);
+        });
+
+        // ********************************************************************
+
+        var radiobutton = new Nexus.RadioButton('#radiobutton',{
+            'size': [120,25],
+            'numberOfButtons': 4,
+            'active': -1
+        });
+
+        radiobutton.on('change',function(v) {
+            console.log("radiobutton : " + v);
+        });
+
+        // ********************************************************************
+
+        var sliderv = new Nexus.Slider('#sliderv',{
+            'size': [20,120],
+            'mode': 'relative',  // 'relative' or 'absolute'
+            'min': 0,
+            'max': 1,
+            'step': 0,
+            'value': 0
+        });
+
+        sliderv.on('change',function(v) {
+            console.log("sliderv : " + v);
+        });
+
+        // ********************************************************************
+
+        var select = new Nexus.Select('#select',{
+            'size': [100,30],
+            'options': ['default', 'option1', 'option2', 'option3', 'option4']
+        });
+
+        select.on('change',function(v) {
+            console.log("select : " + JSON.safeStringify(v));
+        });
+
+        // ********************************************************************
+
+        var pan = new Nexus.Pan('#pan');
+
+        pan.on('change',function(v) {
+            console.log("pan : " + JSON.safeStringify(v));
+        });
+
+        // ********************************************************************
+
+        var position = new Nexus.Position('#position',{
+            'size': [200,200],
+            'mode': 'absolute',  // "absolute" or "relative"
+            'x': 0.5,  // initial x value
+            'minX': 0,
+            'maxX': 1,
+            'stepX': 0,
+            'y': 0.5,  // initial y value
+            'minY': 0,
+            'maxY': 1,
+            'stepY': 0
+        });
+
+        position.on('change',function(v) {
+            console.log("position : " + JSON.safeStringify(v));
+        });
+
+        // ********************************************************************
+
+        var envelope = new Nexus.Envelope('#envelope',{
+            'size': [250,200],
+            'noNewPoints': false,
+            'points': [
+                {
+                  x: 0.1,
+                  y: 0.4
+                },
+                {
+                  x: 0.35,
+                  y: 0.6
+                },
+                {
+                  x: 0.65,
+                  y: 0.2
+                },
+                {
+                  x: 0.9,
+                  y: 0.4
+                },
+            ]
+        });
+
+        envelope.on('change',function(v) {
+            console.log("envelope : " + JSON.safeStringify(v));
+        });
+
+
+        // ********************************************************************
+
+        var multislider = new Nexus.Multislider('#multislider',{
+            'size': [200,200],
+            'numberOfSliders': 5,
+            'min': 0,
+            'max': 1,
+            'step': 0,
+            'candycane': 3,
+            'values': [0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1],
+            'smoothing': 0,
+            'mode': 'bar'  // 'bar' or 'line'
+        });
+
+        multislider.on('change',function(v) {
+            console.log("multislider : " + JSON.safeStringify(v));
+        });
+
+        // ********************************************************************
+
+        var piano = new Nexus.Piano('#piano',{
+            'size': [500,120],
+            'mode': 'button',  // 'button', 'toggle', or 'impulse'
+            'lowNote': 24,
+            'highNote': 60
+        });
+
+        piano.on('change',function(v) {
+            console.log("piano (change) : " + JSON.safeStringify(v));
+        });
+        piano.on('click',function(v) {
+            console.log("piano (click) : " + JSON.safeStringify(v));
+        });
+        piano.on('released',function(v) {
+            console.log("piano (released) : " + JSON.safeStringify(v));
+        });
+        // ********************************************************************
+
+        var sequencer = new Nexus.Sequencer('#sequencer',{
+            'size': [480,120],
+            'mode': 'toggle',
+            'rows': 4,
+            'columns': 16,
+            'paddingRow': 2,
+            'paddingColumn': 2
+        });
+
+        sequencer.matrix.set.all([
+            [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1],
+            [0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0],
+            [1,1,0,0,1,0,0,0,1,1,0,0,1,0,0,0]
+        ]);
+
+        sequencer.on('change',function(v) {
+            console.log("sequencer (change) : " + JSON.safeStringify(v));
+        });
+
+        sequencer.on('step',function(v) {
+            console.log("sequencer (step) : " + JSON.safeStringify(v));
+        });
+
+
+        // ********************************************************************
+
+        var textbutton = new Nexus.TextButton('#textbutton',{
+            'size': [150,50],
+            'state': false,
+            'text': 'play',
+            'alternateText': 'Stop'
+        });
+
+        textbutton.on('change',function(v) {
+            console.log("textbutton : " + JSON.safeStringify(v));
+        });
+
+
+        // ********************************************************************
+
+        var tilt = new Nexus.Tilt('#tilt');
+
+        tilt.on('change',function(v) {
+            console.log("tilt : " + JSON.safeStringify(v));
+        });
+
+
+        // ********************************************************************
+/*      // bug
+        var pan2d = new Nexus.Pan2D('#pan2d',{
+            'size': [200,200],
+            'range': 0.5,         // detection radius of each speaker
+            'mode': 'absolute',   // 'absolute' or 'relative' sound movement
+            'speakers': [         // the speaker [x,y] positions
+                [0.5,0.2],
+                [0.75,0.25],
+                [0.8,0.5],
+                [0.75,0.75],
+                [0.5,0.8],
+                [0.25,0.75]
+                [0.2,0.5],
+                [0.25,0.25]
+            ]
+        });
+
+        pan2d.on('change',function(v) {
+            console.log("pan2d : " + JSON.safeStringify(v));
+        });
+*/
+        // ********************************************************************
+
+        var meter = new Nexus.Meter('#meter', {
+            size: [75,150]
+        });
+        meter.connect(bandpass);
+
+        // ********************************************************************
+
+        var oscilloscope = new Nexus.Oscilloscope('#oscilloscope',{
+            'size': [300,150]
+        });
+        oscilloscope.connect(bandpass);
+
+        // ********************************************************************
+
+        var spectrogram = new Nexus.Spectrogram('#spectrogram',{
+              'size': [300,150]
+        });
+        spectrogram.connect(bandpass)
+
+        // ********************************************************************
+
+    </script>
+
+
+
+</body>

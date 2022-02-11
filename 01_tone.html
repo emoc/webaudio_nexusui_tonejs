@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<!--
+    Exemple de base avec Tone.js
+
+    NexusUI 2.1.6         http://nexus-js.github.io/ui/
+    Tone.js 14.7.39       https://github.com/Tonejs/Tone.js
+    Blueprint CSS 3.1.3   https://blueprintcss.dev/docs/grid
+
+    10 février 2022 / pierre@lesporteslogiques.net / Debian 9.5 @ kirin
+
+    https://github.com/emoc/webaudio_nexusui_tonejs
+-->
+
+<head>
+    <meta charset="utf-8">
+    <title>osc + freq</title>
+    <script src="./Tone.js"></script>
+</head>
+
+<body>
+    <button onclick="start();">START</button>
+    <button onclick="stop();">STOP</button>
+    <input type="range" oninput="setFreq(this.value);" min="50" max="5000" value="378" step="10">
+    <output id="frequence">378</output>
+
+    <script>
+        const osc = new Tone.Oscillator(378);
+        osc.toDestination();
+
+        function start() {
+            osc.start();
+        }
+        function stop() {
+            osc.stop();
+        }
+        function setFreq(val) {
+            document.getElementById('frequence').innerHTML = val;
+            osc.frequency.value = val;
+        }
+    </script>
+
+</body>
+
+</html>

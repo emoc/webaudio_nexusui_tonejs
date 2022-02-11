@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+
+<!--
+    Application d'accompagnement. Idée : Christophe Corbi http://brettl.fr
+
+    NexusUI 2.1.6         http://nexus-js.github.io/ui/
+    Tone.js 14.7.39       https://github.com/Tonejs/Tone.js
+    Blueprint CSS 3.1.3   https://blueprintcss.dev/docs/grid
+
+    10 février 2022 / pierre@lesporteslogiques.net / Debian 9.5 @ kirin
+
+    https://github.com/emoc/webaudio_nexusui_tonejs
+-->
+
+<head>
+    <meta charset="utf-8">
+    <title>Accompagnement</title>
+    <script src="./Tone.js"></script>
+    <script src="./NexusUI.js"></script>
+    <style>
+
+        .label {
+            background-color: #f5fd76;
+            color: #22bbbb;
+            padding: 3px;
+            font-variant: small-caps;
+            font-size: 1em;
+            font-family: arial, sans-serif;
+        }
+
+        table, td, tr {
+            vertical-align: top;
+        }
+
+        td {
+            padding-right : 50px;
+        }
+
+    </style>
+
+</head>
+
+<body style="margin:50px;">
+
+    <table>
+        <tr>
+            <td>
+                <span class="label" style="background-color: #fdd276;">on/off</span><br><br>
+            	<div id="tog"></div><br>
+            </td>
+            <td>
+                <span class="label">BPM</span><br><br>
+                <div id="bpm"></div><br>
+            </td>
+            <td>
+                <span class="label">vol. rythmique</span><br><br>
+            	<div id="slide_vol"></div><br>
+            </td>
+            <td>
+                <span class="label">vol. accompagnement</span><br><br>
+            	<div id="slide_volacc"></div><br>
+            </td>
+            <td>
+                <span class="label">vol. clavier</span><br><br>
+                <div id="slide_volkey"></div><br>
+            </td>
+        </tr>
+    </table>
+
+
+    <table>
+        <tr>
+            <td>
+                <span class="label">séquenceur rythmique</span><br><br>
+                <div id="seq"></div><br>
+                <span class="label">changer le pattern rythmique</span><br><br>
+                <div id="changepattern"></div><br>
+            </td>
+            <td>
+                <span class="label">séquenceur d'accompagnement</span><br><br>
+            	<div id="seqacc"></div><br>
+            </td>
+        </tr>
+    </table>
+
+	<div id="pianotarget"></div>
+
+
+    <script>
+
+        // Interface graphique avec NexusUI.js *********************************
+
+        var next_bpm = 90;
+
+        var bpm = new Nexus.Number('#bpm',{
+            'size': [60,30],
+            'value': next_bpm,
+            'min': 60,
+            'max': 200,
+            'step': 1
+        });
+
+
+        bpm.on('change',function(v) {
+            next_bpm = v;
+            //console.log("BPM " + next_bpm + " millis " + (15000 / v) );
+        });
+
+        bpm.on('release',function() {
+            //console.log('BPM relâché');
+            if (toggle.state === true) {
+                sequencer.stop();
+                sequencer.start(15000 / next_bpm);
+                sequenceracc.stop();
+                sequenceracc.start((15000 / next_bpm) * 8);
+            }
+        });
+
+
+        var sequencer = new Nexus.Sequencer('#seq',{
+            'size': [480,120],
+            'mode': 'toggle',
+            'rows': 4,
+            'columns': 16,
+            'paddingRow': 2,
+            'paddingColumn': 2,
+        });
+
+        sequencer.matrix.set.all([
+            [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1],
+            [0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0],
+            [1,1,0,0,1,0,0,0,1,1,0,0,1,0,0,0]
+        ]);
+
+        sequencer.on('step',function(v) {
+            //console.log(v); // Renvoie Array(4) [0, 0, 0, 0 ] index 0 = rangée du bas
+            if (v[3] === 1) piste4.start();
+            if (v[2] === 1) piste3.start();
+            if (v[1] === 1) piste2.start();
+            if (v[0] === 1) piste1.start();
+        });
+
+        var changepattern = new Nexus.RadioButton('#changepattern',{
+            'size': [120,25],
+            'numberOfButtons': 4,
+            'active': 0
+        })
+
+        changepattern.on('change',function(v) {
+            //console.log("nouveau pattern choisi " + v);
+
+            if (v === 0) { // redéfinir le pattern complet original
+                sequencer.matrix.set.all([
+                    [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1],
+                    [0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0],
+                    [1,1,0,0,1,0,0,0,1,1,0,0,1,0,0,0]
+                ]);
+            }
+            if (v === 1) { // rotation sur colonnes et rangées
+                sequencer.matrix.rotate.all( 2 );
+            }
+            if (v === 2) { // remplir colonnes et rangées avec un motif répété
+                sequencer.matrix.populate.all( [0, 1, 0] );
+            }
+            if (v === 3) { // remplir colonnes et rangées avec un motif probabiliste
+                sequencer.matrix.populate.all( [0.2, 0.5, 0.2, 0.8] );
+            }
+        });
+
+        var toggle = Nexus.Add.Toggle('#tog', {
+            'size': [40,20],
+            'state': false
+        })
+
+        toggle.on('change',function(v) {
+            Tone.start();
+            //console.log("état du toggle modifié en " + v);
+            if (v === true) {
+                sequencer.start(15000 / next_bpm);  // Durée du pas, en ms
+                sequenceracc.start((15000 / next_bpm) * 8);
+            } else {
+                sequencer.stop();
+                sequenceracc.stop();
+            }
+        });
+
+        var slider = Nexus.Add.Slider('#slide_vol',{
+            'size': [100,25],
+            'value': 0.3
+        });
+
+        slider.on('click',function() {
+            //console.log('Volume cliqué');
+        });
+
+        slider.on('release',function() {
+            //console.log('Volume relâché');
+        });
+
+        slider.on('change',function(v) {
+            //console.log("slider : " + v);
+            gain.gain.value = v;
+        });
+
+        var sequenceracc = new Nexus.Sequencer('#seqacc',{
+            'size': [240,120],
+            'mode': 'toggle',
+            'rows': 4,
+            'columns': 8,
+            'paddingRow': 2,
+            'paddingColumn': 2,
+        });
+
+        sequenceracc.matrix.set.all([
+            [1,0,0,0,0,0,0,0],
+            [0,1,0,0,0,0,0,0],
+            [0,0,1,0,1,0,1,0],
+            [0,0,0,1,0,1,0,1]
+        ]);
+
+        sequenceracc.on('step',function(v) {
+            //console.log(v); // Renvoie Array(4) [0, 0, 0, 0 ] index 0 = rangée du bas
+
+            if (v[3] === 1) poly.triggerAttackRelease(["E4", "G4", "C5"], "4n");
+            if (v[2] === 1) poly.triggerAttackRelease(["C4", "E4", "A4"], "4n");
+            if (v[1] === 1) poly.triggerAttackRelease(["C4", "F4", "A4"], "4n");
+            if (v[0] === 1) poly.triggerAttackRelease(["F4", "G4", "B4"], "4n");
+
+        });
+
+        var slideracc = Nexus.Add.Slider('#slide_volacc',{
+            'size': [100,25],
+            'value': 0.3
+        });
+
+        slideracc.on('change',function(v) {
+            //console.log("slider : " + v);
+            gainacc.gain.value = v;
+        });
+
+        var piano = new Nexus.Piano('#pianotarget', {
+            'size': [800,125],
+            'mode': 'button',
+            'lowNote': 36,
+            'highNote': 84
+        })
+
+        piano.on('change',function(v) {
+            //console.log(v.note);
+            if (v.state) {
+                fatOsc.frequency.value = Nexus.mtof(v.note);
+                Tone.start();
+                ampenv.triggerAttack();
+            } else {
+                ampenv.triggerRelease();
+            }
+        })
+
+        var sliderkey = Nexus.Add.Slider('#slide_volkey',{
+            'size': [100,25],
+            'value': 0.3
+        });
+
+        sliderkey.on('change',function(v) {
+            //console.log("slider key : " + v);
+            gainkey.gain.value = v;
+        });
+
+
+        // Synthèse sonore avec Tone.js via l'objet Tone.Player ********************
+
+        const gain    = new Tone.Gain(0.3).toDestination();
+        const piste4  = new Tone.Player("./audio/hihat.mp3").connect(gain);
+        const piste3  = new Tone.Player("./audio/tom3.mp3").connect(gain);
+        const piste2  = new Tone.Player("./audio/snare.mp3").connect(gain);
+        const piste1  = new Tone.Player("./audio/kick.mp3").connect(gain);
+
+        const gainkey = new Tone.Gain(0.3).toDestination();
+        const fatOsc  = new Tone.FatOscillator(378, "sawtooth", 40);
+        const ampenv  = new Tone.AmplitudeEnvelope(0.3, 0.0, 0.7, 0.5);
+        fatOsc.connect(ampenv);
+        ampenv.connect(gainkey);
+        gainkey.toDestination();
+        fatOsc.start();
+
+        const gainacc = new Tone.Gain(0.3).toDestination();
+        const poly    = new Tone.PolySynth(Tone.AMSynth).connect(gainacc);
+
+    </script>
+
+</body>
+
+</html>
