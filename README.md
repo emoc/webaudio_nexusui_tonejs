@@ -53,12 +53,11 @@ Lecture de petites boucles avec oscilloscope et spectrogramme.
 ![09_grains](./assets/09_grains.png?1)
 
 **10_sequence.html**  
-_Tone.js, interface en HTML5._
+_Tone.js, interface en HTML5._  
 Composition musicale avec des sons de synthèse et des structures proposées par Tone.js
 
 **accompagnement**  
-_Tone.js, NexusUI.js._
-COMPLETER AVEC VOLUME
+_Tone.js, NexusUI.js._  
 Plusieurs éléments d'interface pour contrôler une application d'accompagnement (idée : [Christophe Corbi](http://brettl.fr)).
 
 ![accompagnement](./assets/accompagnement.png?1)
@@ -69,10 +68,10 @@ Adaptation vite-fait-mal-fait d'un exemple de l'API Tone.js pour utiliser un cla
 
 ![webmidi_tone_nexus](./assets/test_webmidi.png?0)  
 
-**elements_nexusui.html**
+**elements_nexusui.html**  
 _NexusUI.js, WebAudioAPI._  
 Tous les éléments d'interface de NexusUI avec les données captées (visibles sur la console JS).  
-(Image ci-dessus)
+(Image en entête)
 
 ## Ressources
 
