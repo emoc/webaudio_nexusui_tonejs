@@ -49,6 +49,7 @@ Utilisation de slider et pan pour placer deux sons dans l'espace stéréo.
 **09_grains.html**  
 _Tone.js, NexusUI.js._  
 Lecture de petites boucles avec oscilloscope et spectrogramme.
+
 ![09_grains](./assets/09_grains.png?1)
 
 **10_sequence.html**  
@@ -59,11 +60,13 @@ Composition musicale avec des sons de synthèse et des structures proposées par
 _Tone.js, NexusUI.js._
 COMPLETER AVEC VOLUME
 Plusieurs éléments d'interface pour contrôler une application d'accompagnement (idée : [Christophe Corbi](http://brettl.fr)).
+
 ![accompagnement](./assets/accompagnement.png?1)
 
 **webmidi_tone_nexus**  
 _Tone.js, NexusUI.js, Webmidi.js._  
 Adaptation vite-fait-mal-fait d'un exemple de l'API Tone.js pour utiliser un clavier connecté en webmidi.
+
 ![webmidi_tone_nexus](./assets/test_webmidi.png?0)  
 
 **elements_nexusui.html**
