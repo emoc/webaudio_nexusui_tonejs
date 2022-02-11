@@ -121,6 +121,7 @@ Tous les éléments d'interface de NexusUI avec les données captées (visibles 
   * https://github.com/mariobrubio/PUJSynth synthé classique
   * https://github.com/MikhaelOP9/WebAudioSynth synthé complet
   * https://github.com/nmwenz90/Nate-s-SoundBoard-Project soundboard, lecteur de sample avec oscillo
+  * https://github.com/ErwanDavid/thekeybourde
 
 ### Encore ?
 
